@@ -26,20 +26,11 @@
 
         <!-- Sleep Times -->
         <div class="form-section">
-            <h3 class="section-title">🌙 Sleep Times</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Wake Time</label>
-                    <span class="form-hint">This morning</span>
-                    <input 
-                        type="time" 
-                        name="wake_time" 
-                        value="{{ entry.wake_time if entry else '' }}"
-                        class="form-input time-picker"
-                    >
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Bed Time</label>
+            <h3 class="section-title">🌙 Sleep Timeline</h3>
+            <div class="sleep-timeline">
+                <div class="timeline-point bedtime">
+                    <span class="timeline-icon">🌙</span>
+                    <label class="form-label">Bedtime</label>
                     <span class="form-hint">Last night</span>
                     <input 
                         type="time" 
@@ -48,8 +39,24 @@
                         class="form-input time-picker"
                     >
                 </div>
+                
+                <div class="timeline-bar">
+                    <div class="timeline-line"></div>
+                    <span class="timeline-duration" id="sleepDuration">— h — m</span>
+                </div>
+                
+                <div class="timeline-point waketime">
+                    <span class="timeline-icon">☀️</span>
+                    <label class="form-label">Wake up</label>
+                    <span class="form-hint">This morning</span>
+                    <input 
+                        type="time" 
+                        name="wake_time" 
+                        value="{{ entry.wake_time if entry else '' }}"
+                        class="form-input time-picker"
+                    >
+                </div>
             </div>
-            <p class="sleep-duration" id="sleepDuration"></p>
         </div>
 
         <!-- Medications -->
@@ -217,9 +224,9 @@
             const hours = Math.floor(durationMins / 60);
             const mins = durationMins % 60;
             
-            display.textContent = `Sleep duration: ${hours}h ${mins}m`;
+            display.textContent = `${hours}h ${mins}m`;
         } else {
-            display.textContent = '';
+            display.textContent = '— h — m';
         }
     }
     

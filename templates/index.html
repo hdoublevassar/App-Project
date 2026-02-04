@@ -26,13 +26,11 @@
         <h2>Today's Entry</h2>
         {% if today_entry %}
             <div class="status-grid">
-                <div class="status-item">
-                    <span class="status-label">Woke Up</span>
-                    <span class="status-value">{{ today_entry.wake_time or '—' }}</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Went to Bed</span>
-                    <span class="status-value">{{ today_entry.bed_time or '—' }}</span>
+                <div class="status-item sleep-status">
+                    <span class="status-label">Sleep</span>
+                    <span class="status-value">
+                        🌙 {{ today_entry.bed_time or '—' }} → ☀️ {{ today_entry.wake_time or '—' }}
+                    </span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">Wake Feeling</span>
@@ -66,7 +64,9 @@
                 <a href="{{ url_for('log_entry', date=entry.entry_date) }}" class="entry-row">
                     <span class="entry-date">{{ entry.entry_date }}</span>
                     <span class="entry-times">
-                        Woke {{ entry.wake_time or '?' }} · Slept {{ entry.bed_time or '?' }}
+                        <span class="time-bed">🌙 {{ entry.bed_time or '—' }}</span>
+                        <span class="time-arrow">→</span>
+                        <span class="time-wake">☀️ {{ entry.wake_time or '—' }}</span>
                     </span>
                     <span class="entry-mood mood-{{ entry.overall_mood or 0 }}">
                         {{ entry.overall_mood or '—' }}

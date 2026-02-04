@@ -14,9 +14,8 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Morning Of</th>
-                    <th>Woke Up</th>
-                    <th>Went to Bed</th>
+                    <th>Date</th>
+                    <th>Sleep</th>
                     <th>Duration</th>
                     <th>Wake Feeling</th>
                     <th>Overall Mood</th>
@@ -28,8 +27,11 @@
                 {% for entry in entries %}
                 <tr>
                     <td class="date-cell">{{ entry.entry_date }}</td>
-                    <td>{{ entry.wake_time or '—' }}</td>
-                    <td>{{ entry.bed_time or '—' }} <span class="prev-night">(prev night)</span></td>
+                    <td class="sleep-cell">
+                        <span class="sleep-range">
+                            🌙 {{ entry.bed_time or '—' }} → ☀️ {{ entry.wake_time or '—' }}
+                        </span>
+                    </td>
                     <td class="duration-cell" 
                         data-bed="{{ entry.bed_time }}" 
                         data-wake="{{ entry.wake_time }}">
