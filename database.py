@@ -4,11 +4,17 @@ Uses SQLite for simple, portable local storage.
 """
 
 import sqlite3
+import os
 from datetime import datetime, date
 from pathlib import Path
 
-# Database file will be created in the same folder as this script
-DATABASE_PATH = Path(__file__).parent / "sleep_tracker.db"
+# Database file location:
+# - If SLEEP_TRACKER_DB environment variable is set, use that (for Linux installs)
+# - Otherwise, create in the same folder as this script (for development/Windows)
+if os.environ.get('SLEEP_TRACKER_DB'):
+    DATABASE_PATH = Path(os.environ['SLEEP_TRACKER_DB'])
+else:
+    DATABASE_PATH = Path(__file__).parent / "sleep_tracker.db"
 
 
 def get_connection():
