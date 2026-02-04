@@ -14,9 +14,9 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Bed Time</th>
-                    <th>Wake Time</th>
+                    <th>Morning Of</th>
+                    <th>Woke Up</th>
+                    <th>Went to Bed</th>
                     <th>Duration</th>
                     <th>Wake Feeling</th>
                     <th>Overall Mood</th>
@@ -28,8 +28,8 @@
                 {% for entry in entries %}
                 <tr>
                     <td class="date-cell">{{ entry.entry_date }}</td>
-                    <td>{{ entry.bed_time or '—' }}</td>
                     <td>{{ entry.wake_time or '—' }}</td>
+                    <td>{{ entry.bed_time or '—' }} <span class="prev-night">(prev night)</span></td>
                     <td class="duration-cell" 
                         data-bed="{{ entry.bed_time }}" 
                         data-wake="{{ entry.wake_time }}">
@@ -85,6 +85,7 @@
 {% block scripts %}
 <script>
     // Calculate and display durations
+    // Bed time is from previous night, wake time is morning of this date
     document.querySelectorAll('.duration-cell').forEach(cell => {
         const bed = cell.dataset.bed;
         const wake = cell.dataset.wake;
@@ -96,7 +97,14 @@
             let bedMins = bedH * 60 + bedM;
             let wakeMins = wakeH * 60 + wakeM;
             
-            if (wakeMins < bedMins) {
+            // Bed time is previous night, so we add 24 hours to wake time
+            // unless bed time was after midnight (someone staying up very late)
+            if (bedH >= 12) {
+                // Normal: went to bed in PM hours, woke up next morning
+                wakeMins += 24 * 60;
+            } else if (bedH < 6 && wakeH >= 6) {
+                // Went to bed after midnight, woke later same day - no adjustment
+            } else {
                 wakeMins += 24 * 60;
             }
             

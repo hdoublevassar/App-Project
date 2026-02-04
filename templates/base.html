@@ -30,6 +30,8 @@
             <li><a href="{{ url_for('history') }}" class="{% if request.endpoint == 'history' %}active{% endif %}">History</a></li>
             <li><a href="{{ url_for('calendar_view') }}" class="{% if request.endpoint == 'calendar_view' %}active{% endif %}">Calendar</a></li>
             <li><a href="{{ url_for('charts') }}" class="{% if request.endpoint == 'charts' %}active{% endif %}">Charts</a></li>
+            <li class="nav-divider"></li>
+            <li><button onclick="shutdownApp()" class="shutdown-btn" title="Close Sleep Tracker">✕</button></li>
         </ul>
     </nav>
 
@@ -45,6 +47,26 @@
 
     <!-- Our custom JavaScript -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        function shutdownApp() {
+            if (confirm('Close Sleep Tracker?\n\nThe app will shut down and this window will close.')) {
+                fetch('/shutdown', { method: 'POST' })
+                    .then(() => {
+                        document.body.innerHTML = `
+                            <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;">
+                                <h1 style="font-size:3rem;">🌙</h1>
+                                <p style="color:#94a3b8;margin-top:1rem;">Sleep Tracker has been closed.</p>
+                                <p style="color:#64748b;font-size:0.9rem;">You can close this browser tab.</p>
+                            </div>
+                        `;
+                    })
+                    .catch(() => {
+                        // Server already stopped
+                        window.close();
+                    });
+            }
+        }
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

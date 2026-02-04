@@ -118,6 +118,34 @@ body {
     background-color: rgba(99, 102, 241, 0.1);
 }
 
+.nav-divider {
+    width: 1px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: 0 0.5rem;
+}
+
+.shutdown-btn {
+    background: none;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shutdown-btn:hover {
+    border-color: var(--accent-danger);
+    color: var(--accent-danger);
+    background-color: rgba(248, 113, 113, 0.1);
+}
+
 /* ----- Main Content Area ----- */
 .main-content {
     max-width: 1200px;
@@ -350,6 +378,20 @@ body {
     font-size: 0.9rem;
     color: var(--text-secondary);
     font-weight: 500;
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 0.25rem;
+}
+
+.prev-night {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 .form-input, .form-textarea {

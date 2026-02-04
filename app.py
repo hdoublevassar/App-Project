@@ -187,6 +187,20 @@ def api_entries():
     return jsonify(entries)
 
 
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    """
+    Gracefully shut down the Flask server.
+    This allows closing the app from the browser.
+    """
+    import os
+    print("\n" + "=" * 50)
+    print("  Sleep Tracker is shutting down...")
+    print("  Goodbye! Sleep well! 🌙")
+    print("=" * 50 + "\n")
+    os._exit(0)
+
+
 @app.route('/api/checkins/<entry_date>')
 def api_checkins(entry_date):
     """Return mood check-ins for a specific date."""
