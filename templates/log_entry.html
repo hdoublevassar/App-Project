@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Log Sleep - Sleep Tracker{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <header class="page-header">
+        <h1>{{ 'Edit' if entry else 'Log' }} Sleep Entry</h1>
+        <p class="subtitle">Record your sleep for {{ entry_date }}</p>
+    </header>
+
+    <form method="POST" class="sleep-form card">
+        <input type="hidden" name="entry_date" value="{{ entry_date }}">
+        
+        <!-- Date Picker (to edit different days) -->
+        <div class="form-section">
+            <label class="form-label">Entry Date</label>
+            <input 
+                type="date" 
+                name="entry_date" 
+                value="{{ entry_date }}"
+                class="form-input date-picker"
+                onchange="window.location.href='{{ url_for('log_entry') }}?date=' + this.value"
+            >
+        </div>
+
+        <!-- Sleep Times -->
+        <div class="form-section">
+            <h3 class="section-title">🌙 Sleep Times</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Bed Time</label>
+                    <input 
+                        type="time" 
+                        name="bed_time" 
+                        value="{{ entry.bed_time if entry else '' }}"
+                        class="form-input time-picker"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Wake Time</label>
+                    <input 
+                        type="time" 
+                        name="wake_time" 
+                        value="{{ entry.wake_time if entry else '' }}"
+                        class="form-input time-picker"
+                    >
+                </div>
+            </div>
+            <p class="sleep-duration" id="sleepDuration"></p>
+        </div>
+
+        <!-- Medications -->
+        <div class="form-section">
+            <h3 class="section-title">💊 Sleep Aids Used</h3>
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input 
+                        type="checkbox" 
+                        name="med_melatonin" 
+                        {{ 'checked' if entry and entry.med_melatonin else '' }}
+                    >
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">Melatonin</span>
+                </label>
+                <label class="checkbox-label">
+                    <input 
+                        type="checkbox" 
+                        name="med_weed" 
+                        {{ 'checked' if entry and entry.med_weed else '' }}
+                    >
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">Cannabis</span>
+                </label>
+                <label class="checkbox-label">
+                    <input 
+                        type="checkbox" 
+                        name="med_cold_medicine" 
+                        {{ 'checked' if entry and entry.med_cold_medicine else '' }}
+                    >
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">Cold Medicine</span>
+                </label>
+                <label class="checkbox-label">
+                    <input 
+                        type="checkbox" 
+                        name="med_benadryl" 
+                        {{ 'checked' if entry and entry.med_benadryl else '' }}
+                    >
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">Benadryl</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Wake Feeling -->
+        <div class="form-section">
+            <h3 class="section-title">☀️ How did you feel when you woke up?</h3>
+            <div class="slider-container">
+                <input 
+                    type="range" 
+                    name="wake_feeling" 
+                    min="1" 
+                    max="10" 
+                    value="{{ entry.wake_feeling if entry and entry.wake_feeling else 5 }}"
+                    class="mood-slider"
+                    id="wakeFeelingSlider"
+                >
+                <div class="slider-labels">
+                    <span>1 - Exhausted</span>
+                    <span class="slider-value" id="wakeFeelingValue">5</span>
+                    <span>10 - Refreshed</span>
+                </div>
+            </div>
+            <textarea 
+                name="wake_feeling_notes" 
+                class="form-textarea"
+                placeholder="Optional: Describe how you felt (groggy, energized, sore, etc.)"
+            >{{ entry.wake_feeling_notes if entry else '' }}</textarea>
+        </div>
+
+        <!-- Overall Mood -->
+        <div class="form-section">
+            <h3 class="section-title">😊 Overall mood today?</h3>
+            <div class="slider-container">
+                <input 
+                    type="range" 
+                    name="overall_mood" 
+                    min="1" 
+                    max="10" 
+                    value="{{ entry.overall_mood if entry and entry.overall_mood else 5 }}"
+                    class="mood-slider"
+                    id="overallMoodSlider"
+                >
+                <div class="slider-labels">
+                    <span>1 - Terrible</span>
+                    <span class="slider-value" id="overallMoodValue">5</span>
+                    <span>10 - Fantastic</span>
+                </div>
+            </div>
+            <textarea 
+                name="mood_notes" 
+                class="form-textarea"
+                placeholder="Optional: What affected your mood? Stress, work, exercise, etc."
+            >{{ entry.mood_notes if entry else '' }}</textarea>
+        </div>
+
+        <!-- General Notes -->
+        <div class="form-section">
+            <h3 class="section-title">📝 Additional Notes</h3>
+            <textarea 
+                name="general_notes" 
+                class="form-textarea large"
+                placeholder="Any other observations about your sleep or day..."
+            >{{ entry.general_notes if entry else '' }}</textarea>
+        </div>
+
+        <!-- Submit -->
+        <div class="form-actions">
+            <a href="{{ url_for('home') }}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Update slider value displays
+    function setupSlider(sliderId, valueId) {
+        const slider = document.getElementById(sliderId);
+        const valueDisplay = document.getElementById(valueId);
+        
+        if (slider && valueDisplay) {
+            valueDisplay.textContent = slider.value;
+            slider.addEventListener('input', () => {
+                valueDisplay.textContent = slider.value;
+            });
+        }
+    }
+    
+    setupSlider('wakeFeelingSlider', 'wakeFeelingValue');
+    setupSlider('overallMoodSlider', 'overallMoodValue');
+    
+    // Calculate sleep duration
+    function updateSleepDuration() {
+        const bedTime = document.querySelector('input[name="bed_time"]').value;
+        const wakeTime = document.querySelector('input[name="wake_time"]').value;
+        const display = document.getElementById('sleepDuration');
+        
+        if (bedTime && wakeTime) {
+            let [bedH, bedM] = bedTime.split(':').map(Number);
+            let [wakeH, wakeM] = wakeTime.split(':').map(Number);
+            
+            // Convert to minutes since midnight
+            let bedMins = bedH * 60 + bedM;
+            let wakeMins = wakeH * 60 + wakeM;
+            
+            // If wake time is less than bed time, assume next day
+            if (wakeMins < bedMins) {
+                wakeMins += 24 * 60;
+            }
+            
+            const durationMins = wakeMins - bedMins;
+            const hours = Math.floor(durationMins / 60);
+            const mins = durationMins % 60;
+            
+            display.textContent = `Sleep duration: ${hours}h ${mins}m`;
+        } else {
+            display.textContent = '';
+        }
+    }
+    
+    document.querySelector('input[name="bed_time"]').addEventListener('change', updateSleepDuration);
+    document.querySelector('input[name="wake_time"]').addEventListener('change', updateSleepDuration);
+    updateSleepDuration();
+</script>
+{% endblock %}

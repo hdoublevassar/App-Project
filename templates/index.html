@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sleep Tracker{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <header class="page-header">
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Here's your sleep overview</p>
+    </header>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+        <a href="{{ url_for('log_entry') }}" class="action-card primary">
+            <span class="action-icon">🛏️</span>
+            <span class="action-text">Log Tonight's Sleep</span>
+        </a>
+        <a href="{{ url_for('mood_checkin') }}" class="action-card secondary">
+            <span class="action-icon">💭</span>
+            <span class="action-text">Quick Mood Check-In</span>
+        </a>
+    </section>
+
+    <!-- Today's Status -->
+    <section class="today-status card">
+        <h2>Today's Entry</h2>
+        {% if today_entry %}
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Bed Time</span>
+                    <span class="status-value">{{ today_entry.bed_time or '—' }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Wake Time</span>
+                    <span class="status-value">{{ today_entry.wake_time or '—' }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Wake Feeling</span>
+                    <span class="status-value mood-{{ today_entry.wake_feeling or 0 }}">
+                        {{ today_entry.wake_feeling or '—' }}/10
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Overall Mood</span>
+                    <span class="status-value mood-{{ today_entry.overall_mood or 0 }}">
+                        {{ today_entry.overall_mood or '—' }}/10
+                    </span>
+                </div>
+            </div>
+            <a href="{{ url_for('log_entry', date=today) }}" class="btn btn-outline">Edit Today's Entry</a>
+        {% else %}
+            <p class="empty-state">No entry for today yet.</p>
+            <a href="{{ url_for('log_entry') }}" class="btn btn-primary">Log Today's Sleep</a>
+        {% endif %}
+    </section>
+
+    <!-- Recent Entries Summary -->
+    <section class="recent-entries card">
+        <h2>Last 7 Days</h2>
+        {% if recent_entries %}
+            <div class="mini-chart-container">
+                <canvas id="weekChart"></canvas>
+            </div>
+            <div class="entries-list">
+                {% for entry in recent_entries %}
+                <a href="{{ url_for('log_entry', date=entry.entry_date) }}" class="entry-row">
+                    <span class="entry-date">{{ entry.entry_date }}</span>
+                    <span class="entry-times">
+                        {{ entry.bed_time or '?' }} → {{ entry.wake_time or '?' }}
+                    </span>
+                    <span class="entry-mood mood-{{ entry.overall_mood or 0 }}">
+                        {{ entry.overall_mood or '—' }}
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-state">No entries yet. Start tracking your sleep!</p>
+        {% endif %}
+    </section>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Mini chart for dashboard
+    const recentEntries = {{ recent_entries | tojson | safe }};
+    
+    if (recentEntries.length > 0) {
+        const ctx = document.getElementById('weekChart').getContext('2d');
+        
+        // Reverse to show oldest to newest (left to right)
+        const data = recentEntries.slice().reverse();
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(e => e.entry_date.slice(5)), // Show MM-DD
+                datasets: [{
+                    label: 'Overall Mood',
+                    data: data.map(e => e.overall_mood),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }, {
+                    label: 'Wake Feeling',
+                    data: data.map(e => e.wake_feeling),
+                    borderColor: '#22d3ee',
+                    backgroundColor: 'rgba(34, 211, 238, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 10,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#e2e8f0' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

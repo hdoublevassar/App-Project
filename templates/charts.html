@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Charts - Sleep Tracker{% endblock %}
+
+{% block content %}
+<div class="charts-page">
+    <header class="page-header">
+        <h1>Sleep Analytics</h1>
+        <p class="subtitle">Visualize your sleep patterns and trends</p>
+    </header>
+
+    {% if entries %}
+    
+    <!-- Mood Over Time Chart -->
+    <section class="chart-section card">
+        <h2>Mood & Wake Feeling Trends</h2>
+        <div class="chart-container">
+            <canvas id="moodChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Sleep Duration Chart -->
+    <section class="chart-section card">
+        <h2>Sleep Duration</h2>
+        <div class="chart-container">
+            <canvas id="durationChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Mood Check-ins Throughout Day -->
+    {% if checkins %}
+    <section class="chart-section card">
+        <h2>Daily Mood & Energy Patterns</h2>
+        <p class="chart-description">
+            Track when you feel best during the day to optimize your sleep schedule.
+        </p>
+        <div class="chart-container">
+            <canvas id="checkinChart"></canvas>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Medication Impact -->
+    <section class="chart-section card">
+        <h2>Sleep Aid Impact on Mood</h2>
+        <div class="chart-container small">
+            <canvas id="medChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Insights Panel -->
+    <section class="insights-section card">
+        <h2>💡 Insights</h2>
+        <div class="insights-grid" id="insightsGrid">
+            <!-- Populated by JavaScript -->
+        </div>
+    </section>
+
+    {% else %}
+    <div class="empty-state-container card">
+        <p class="empty-state-message">Start logging your sleep to see charts and analytics!</p>
+        <a href="{{ url_for('log_entry') }}" class="btn btn-primary">Log Your First Entry</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const entries = {{ entries | tojson | safe }};
+    const checkins = {{ checkins | tojson | safe }};
+    
+    // Reverse entries for chronological order
+    const chronologicalEntries = entries.slice().reverse();
+    
+    // Chart colors
+    const colors = {
+        primary: '#6366f1',
+        secondary: '#22d3ee',
+        tertiary: '#f472b6',
+        quaternary: '#4ade80',
+        grid: 'rgba(255,255,255,0.1)',
+        text: '#94a3b8'
+    };
+    
+    // Common chart options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                grid: { color: colors.grid },
+                ticks: { color: colors.text }
+            },
+            x: {
+                grid: { color: colors.grid },
+                ticks: { color: colors.text }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: { color: '#e2e8f0' }
+            }
+        }
+    };
+
+    // ----- Mood Over Time Chart -----
+    if (entries.length > 0) {
+        new Chart(document.getElementById('moodChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: chronologicalEntries.map(e => e.entry_date.slice(5)),
+                datasets: [{
+                    label: 'Overall Mood',
+                    data: chronologicalEntries.map(e => e.overall_mood),
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '33',
+                    fill: true,
+                    tension: 0.3
+                }, {
+                    label: 'Wake Feeling',
+                    data: chronologicalEntries.map(e => e.wake_feeling),
+                    borderColor: colors.secondary,
+                    backgroundColor: colors.secondary + '33',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    ...commonOptions.scales,
+                    y: { ...commonOptions.scales.y, min: 0, max: 10 }
+                }
+            }
+        });
+    }
+
+    // ----- Sleep Duration Chart -----
+    function calculateDuration(bed, wake) {
+        if (!bed || !wake) return null;
+        
+        let [bedH, bedM] = bed.split(':').map(Number);
+        let [wakeH, wakeM] = wake.split(':').map(Number);
+        
+        let bedMins = bedH * 60 + bedM;
+        let wakeMins = wakeH * 60 + wakeM;
+        
+        if (wakeMins < bedMins) {
+            wakeMins += 24 * 60;
+        }
+        
+        return (wakeMins - bedMins) / 60; // Return hours
+    }
+    
+    const durations = chronologicalEntries.map(e => calculateDuration(e.bed_time, e.wake_time));
+    
+    if (durations.some(d => d !== null)) {
+        new Chart(document.getElementById('durationChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: chronologicalEntries.map(e => e.entry_date.slice(5)),
+                datasets: [{
+                    label: 'Hours of Sleep',
+                    data: durations,
+                    backgroundColor: colors.primary + 'aa',
+                    borderColor: colors.primary,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    ...commonOptions.scales,
+                    y: { ...commonOptions.scales.y, min: 0, max: 12 }
+                }
+            }
+        });
+    }
+
+    // ----- Check-in Chart -----
+    if (checkins.length > 0) {
+        // Group check-ins by hour
+        const hourlyData = {};
+        checkins.forEach(c => {
+            const hour = parseInt(c.check_time.split(':')[0]);
+            if (!hourlyData[hour]) {
+                hourlyData[hour] = { moods: [], energies: [] };
+            }
+            hourlyData[hour].moods.push(c.mood_level);
+            hourlyData[hour].energies.push(c.energy_level);
+        });
+        
+        const hours = Object.keys(hourlyData).map(Number).sort((a, b) => a - b);
+        const avgMoods = hours.map(h => {
+            const data = hourlyData[h];
+            return data.moods.reduce((a, b) => a + b, 0) / data.moods.length;
+        });
+        const avgEnergies = hours.map(h => {
+            const data = hourlyData[h];
+            return data.energies.reduce((a, b) => a + b, 0) / data.energies.length;
+        });
+        
+        new Chart(document.getElementById('checkinChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: hours.map(h => `${h}:00`),
+                datasets: [{
+                    label: 'Avg Mood',
+                    data: avgMoods,
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '33',
+                    fill: false,
+                    tension: 0.3
+                }, {
+                    label: 'Avg Energy',
+                    data: avgEnergies,
+                    borderColor: colors.quaternary,
+                    backgroundColor: colors.quaternary + '33',
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    ...commonOptions.scales,
+                    y: { ...commonOptions.scales.y, min: 0, max: 10 }
+                }
+            }
+        });
+    }
+
+    // ----- Medication Impact Chart -----
+    function calcAvgMood(filtered) {
+        if (filtered.length === 0) return 0;
+        return filtered.reduce((sum, e) => sum + (e.overall_mood || 0), 0) / filtered.length;
+    }
+    
+    const noMeds = entries.filter(e => !e.med_melatonin && !e.med_weed && !e.med_cold_medicine && !e.med_benadryl);
+    const withMelatonin = entries.filter(e => e.med_melatonin);
+    const withWeed = entries.filter(e => e.med_weed);
+    const withColdMed = entries.filter(e => e.med_cold_medicine);
+    const withBenadryl = entries.filter(e => e.med_benadryl);
+    
+    new Chart(document.getElementById('medChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['No Sleep Aid', 'Melatonin', 'Cannabis', 'Cold Medicine', 'Benadryl'],
+            datasets: [{
+                label: 'Avg Overall Mood',
+                data: [
+                    calcAvgMood(noMeds).toFixed(1),
+                    calcAvgMood(withMelatonin).toFixed(1),
+                    calcAvgMood(withWeed).toFixed(1),
+                    calcAvgMood(withColdMed).toFixed(1),
+                    calcAvgMood(withBenadryl).toFixed(1)
+                ],
+                backgroundColor: [
+                    colors.text,
+                    colors.primary,
+                    colors.quaternary,
+                    colors.secondary,
+                    colors.tertiary
+                ]
+            }]
+        },
+        options: {
+            ...commonOptions,
+            indexAxis: 'y',
+            scales: {
+                x: { ...commonOptions.scales.x, min: 0, max: 10 },
+                y: commonOptions.scales.y
+            }
+        }
+    });
+
+    // ----- Generate Insights -----
+    const insightsGrid = document.getElementById('insightsGrid');
+    const insights = [];
+    
+    // Average sleep duration
+    const validDurations = durations.filter(d => d !== null);
+    if (validDurations.length > 0) {
+        const avgDuration = validDurations.reduce((a, b) => a + b, 0) / validDurations.length;
+        insights.push({
+            icon: '⏱️',
+            title: 'Average Sleep',
+            value: `${avgDuration.toFixed(1)} hours`
+        });
+    }
+    
+    // Best day
+    const entriesWithMood = entries.filter(e => e.overall_mood);
+    if (entriesWithMood.length > 0) {
+        const bestDay = entriesWithMood.reduce((best, e) => 
+            e.overall_mood > (best.overall_mood || 0) ? e : best
+        , {});
+        insights.push({
+            icon: '🌟',
+            title: 'Best Day',
+            value: `${bestDay.entry_date} (${bestDay.overall_mood}/10)`
+        });
+    }
+    
+    // Sleep aid usage
+    const totalWithMeds = entries.filter(e => 
+        e.med_melatonin || e.med_weed || e.med_cold_medicine || e.med_benadryl
+    ).length;
+    const medPercent = entries.length > 0 ? ((totalWithMeds / entries.length) * 100).toFixed(0) : 0;
+    insights.push({
+        icon: '💊',
+        title: 'Sleep Aid Usage',
+        value: `${medPercent}% of nights`
+    });
+    
+    // Render insights
+    insightsGrid.innerHTML = insights.map(i => `
+        <div class="insight-card">
+            <span class="insight-icon">${i.icon}</span>
+            <span class="insight-title">${i.title}</span>
+            <span class="insight-value">${i.value}</span>
+        </div>
+    `).join('');
+</script>
+{% endblock %}
