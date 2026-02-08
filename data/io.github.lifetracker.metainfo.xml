@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.lifetracker</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>LifeTracker</name>
+  <summary>Privacy-focused personal wellness companion</summary>
+  <description>
+    <p>
+      LifeTracker is a comprehensive, privacy-first personal wellness application 
+      designed to help you understand your patterns and improve your quality of life.
+      All data is stored locally and encrypted.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Sleep and mental health tracking with mood trends</li>
+      <li>Fitness and workout logging with personalized recommendations</li>
+      <li>Addiction recovery support with milestone celebrations</li>
+      <li>Medication and appointment management</li>
+      <li>Relationship and interaction tracking</li>
+      <li>Long-term goal setting and progress monitoring</li>
+      <li>Cross-module insights and pattern discovery</li>
+      <li>Private digestive health tracking</li>
+    </ul>
+    <p>
+      Your data never leaves your device. Password-protected with encrypted storage.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/yourusername/lifetracker</url>
+  <url type="bugtracker">https://github.com/yourusername/lifetracker/issues</url>
+  <launchable type="desktop-id">io.github.lifetracker.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Home dashboard with module overview</caption>
+      <image>https://raw.githubusercontent.com/yourusername/lifetracker/main/data/screenshots/home.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="1.0.0" date="2025-01-01">
+      <description>
+        <p>Initial release with all core features.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1" />
+  <developer_name>LifeTracker Developers</developer_name>
+  <kudos>
+    <kudo>ModernToolkit</kudo>
+    <kudo>HiDpiIcon</kudo>
+  </kudos>
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </recommends>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+</component>

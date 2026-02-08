@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=LifeTracker
+Comment=Privacy-focused personal wellness companion
+Exec=lifetracker
+Icon=io.github.lifetracker
+Terminal=false
+Type=Application
+Categories=Utility;GTK;GNOME;
+Keywords=wellness;health;sleep;fitness;tracker;journal;mood;goals;
+StartupNotify=true
